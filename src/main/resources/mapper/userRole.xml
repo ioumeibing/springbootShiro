@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.springboot.mapper.userRoleMapper">
+    <update id="updateUserRole" parameterType="userRole" >
+
+        update user_role set uid=#{uid},rid=#{rid} where urid=#{urid}
+
+    </update>
+
+    <select id="getUrByUidRid" parameterType="_int" resultType="userRole">
+        select * from user_role where uid=#{uid} and rid=#{rid}
+    </select>
+
+    <insert id="adduserRole" parameterType="userRole">
+        insert into user_role(uid,rid) values(#{uid},#{rid})
+    </insert>
+
+    <select id="getUrByUid" parameterType="_int" resultType="userRole">
+        select ur.* from user_role ur left join  Users u on ur.uid=u.uid  where u.uid=#{uid}
+    </select>
+
+    <delete id="deleteUserRole" parameterType="_int">
+        delete from user_role where urid=#{urid}
+    </delete>
+</mapper>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="/HeaderConfig/configHead::html('用户界面')"></head>
+<body>
+<script>
+    $(function (){
+        var data4Vue={
+            uri:'persons',
+            beans:[],
+            bean:{id:0, userName:'',password:'',address:'',phone:null,sex:'',age:null,createDate:'',roleList:[],departments:[]},
+
+            editBean:{id:0, userName:'',password:'',address:'',phone:null,sex:'',age:null,createDate:'',roleList:[],departments:[]},
+
+            editDialogVisible:false,
+            addDialogVisible:false,
+            currentPage:1,
+            pageSize:10,
+            deptData:[],
+            defaultProps: {
+                children: 'children',
+                label: 'deptName'
+            },
+            roleData:[],
+            defaultProps1:{
+                children:'children',
+                label:'roleName'
+            },
+            deptVisible: false,
+            roleVisible:false,
+
+            deptSelectData:[],
+            roleSelectData:[]
+        };
+        var vue = new Vue({
+            el:'#app',
+            data: data4Vue,
+            mounted:function (){
+                this.list();
+                this.deptList();
+                this.getRoleList();
+            },
+
+            methods: {
+                list: function () {
+                    var url = this.uri;
+                    axios.get(url).then(function (response) {
+                        vue.beans = response.data.data;
+                        /*console.log(response.data.data)*/
+                    });
+                },
+
+                deptList:function (){
+                    var url='depts';
+                    var _this =this;
+                    axios.get(url).then(function (response) {
+                        vue.deptData=response.data.data;
+                        _this.getListData();
+                    });
+                },
+
+                getRoleList:function (){
+                  var url='roles';
+                  axios.get(url).then(function (response) {
+                        vue.roleData=response.data.data;
+                  })
+                },
+
+                /*转换函数*/
+                getListData() {
+                    let dataArray = [];
+                    vue.deptData.forEach(function (data) {
+                        let parentId = data.parentId;
+                        /*console.log('parentId: ' +parentId);*/
+                        if (parentId == 0) {
+                            let objTemp = {
+                                did: data.did,
+                                deptName: data.deptName,
+                                postionName:data.postionName,
+                                remark:data.remark,
+                                parentId: parentId,
+                            }
+                            dataArray.push(objTemp);
+                            /*console.log("dataArray"+dataArray);*/
+                        }
+                    })
+                    this.data2treeDG(vue.deptData, dataArray)
+                },
+                data2treeDG(datas, dataArray) {
+                    for (let j = 0; j < dataArray.length; j++) {
+                        let dataArrayIndex = dataArray[j];
+                        let childrenArray = [];
+                        let Id = dataArrayIndex.did;
+                        /*console.log('Id:'+Id);*/
+                        for (let i = 0; i < datas.length; i++) {
+                            let data = datas[i];
+                            let parentId = data.parentId;
+                            if (parentId == Id) {//判断是否为儿子节点
+                                let objTemp = {
+                                    did: data.did,
+                                    deptName: data.deptName,
+                                    postionName:data.postionName,
+                                    remark:data.remark,
+                                    parentId: parentId,
+                                }
+                                childrenArray.push(objTemp);
+                            }
+                        }
+                        dataArrayIndex.children = childrenArray;
+                        if (childrenArray.length > 0) {//有儿子节点则递归
+                            this.data2treeDG(datas, childrenArray)
+                        }
+                    }
+                    vue.deptData = dataArray;
+                   /* console.log("deptData"+vue.deptData);*/
+                    return dataArray;
+                },
+
+
+                deletePerson: function (id) {
+                    var url = 'delete/' + id;
+                    this.$confirm('此操作将永久删除该用, 是否继续?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });
+                        axios.delete(url).then(function (response) {
+                            vue.list();
+                        });
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '已取消删除'
+                        });
+                    });
+                },
+                addPerson: function () {
+                    var url = this.uri;
+                    this.bean.roleList=this.roleSelectData;
+                    this.bean.departments=this.deptSelectData;
+                    var _this = this;
+                    axios.post(url, this.bean).then(function (response) {
+                        vue.list();
+                        vue.bean = {
+                            id: 0, userName: '', password: '', address: '', phone: null, sex: '',
+                            age: null,createDate:'',
+                            roleList:[],departments:[]
+                        };
+                        vue.deptSelectData=[];
+                        vue.roleSelectData=[];
+                        _this.$refs.tree.setCheckedNodes([]);
+                        _this.$refs.tree1.setCheckedNodes([]);
+                        if (response.data.data>0){
+                            _this.$message({
+                                message: '添加成功',
+                                type: 'success'
+                            });
+                        }
+                    });
+                    this.addDialogVisible=false;
+
+                },
+                openUpdatePerson: function (person) {
+                    this.editDialogVisible = true;
+                    vue.editBean = {
+                        id: person.id, userName: person.userName, password: person.password,
+                        address: person.address, phone: person.phone, sex: person.sex, age: person.age,
+                        createDate:person.createDate
+                    };
+                },
+                updatePerson: function () {
+                    var url = this.uri + '/' + this.editBean.id;
+                    var _this = this;
+                    this.editBean.roleList=vue.roleSelectData;
+                    this.editBean.departments=vue.deptSelectData;
+                    axios.put(url, this.editBean).then(function (response) {
+
+
+                        if (response.data.data!=0){
+                            _this.$message({
+                                message: '修改成功',
+                                type: 'success'
+                            });
+                        }
+                        vue.list();
+                        vue.deptSelectData=[];
+                        vue.roleSelectData=[];
+                        /*_this.$refs.tree.setCheckedNodes([]);*/
+                        /*_this.$refs.tree1.setCheckedNodes([]);*/
+
+                    });
+
+                    this.editDialogVisible = false;
+                },
+                handleClick(row) {
+                   /* console.log(row);*/
+                },
+                handleSizeChange(size) {
+                    this.pageSize = size;
+                    /*console.log(this.pageSize);*/
+                },
+                handleCurrentChange(currentPage) {
+                    this.currentPage = currentPage;
+                    /*console.log(this.currentPage);*/
+                },
+                /*时间戳转换*/
+                formatDate:function (value){
+                    let date = new Date(value);
+                    let y = date.getFullYear();
+                    let MM = date.getMonth() + 1;
+                    MM = MM < 10 ? "0" + MM : MM;
+                    let d = date.getDate();
+                    d = d < 10 ? "0" + d : d;
+                    let h = date.getHours();
+                    h = h < 10 ? "0" + h : h;
+                    let m = date.getMinutes();
+                    m = m < 10 ? "0" + m : m;
+                    let s = date.getSeconds();
+                    s = s < 10 ? "0" + s : s;
+                    return y + "-" + MM + "-" + d + " " + h + ":" + m + ":" + s;
+                },
+
+                deptSelect:function (){
+                    vue.deptSelectData=this.$refs.tree1.getCheckedNodes();
+                    vue.deptVisible=false;
+
+                },
+                roleSelect:function (){
+                    vue.roleSelectData=this.$refs.tree.getCheckedNodes();
+                    this.roleVisible=false;
+                },
+                goBack:function () {
+                    window.location.href="main"
+                }
+            }
+        })
+    })
+</script>
+
+<div id="app" style=" margin: 10px">
+    <!--<el-page-header @back="goBack" content="用户管理页面" style="margin-bottom: 30px"></el-page-header>-->
+    <el-breadcrumb separator="/" style="margin-bottom: 30px">
+        <el-breadcrumb-item ><a href="main">返回首页</a></el-breadcrumb-item>
+
+        <el-breadcrumb-item>用户管理</el-breadcrumb-item>
+    </el-breadcrumb>
+    <!--增加 模拟窗-->
+    <shiro:hasPermission name="add">
+        <el-button type="primary" @click="addDialogVisible=true">增加</el-button>
+    </shiro:hasPermission>
+
+
+    <el-dialog title="增加" :visible.sync="addDialogVisible">
+
+        <el-form ref="form" :model="bean" label-width="60px">
+            <el-form-item label="姓名">
+                <el-input v-model.trim="bean.userName" ></el-input>
+            </el-form-item>
+            <el-form-item label="密码">
+                <el-input v-model.trim="bean.password" ></el-input>
+            </el-form-item>
+            <el-form-item label="地址">
+                <el-input v-model.trim="bean.address" ></el-input>
+            </el-form-item>
+            <el-form-item label="电话">
+                <el-input v-model.trim="bean.phone" ></el-input>
+            </el-form-item>
+            <el-form-item label="年龄">
+                <el-input v-model.trim="bean.age" ></el-input>
+            </el-form-item>
+            <el-form-item label="性别">
+                <el-select v-model="bean.sex" placeholder="请选择">
+                    <el-option label="男" value="男"></el-option>
+                    <el-option label="女" value="女"></el-option>
+                </el-select>
+            </el-form-item>
+
+            <el-form-item label="部门">
+                <el-button type="text" @click="deptVisible = true">请选择部门</el-button>
+                <el-dialog :visible.sync="deptVisible" width="30%" height="50%" append-to-body center>
+                    <el-tree
+                            :data="deptData"
+                            show-checkbox
+                            default-expand-all
+                            node-key="did"
+                            ref="tree1"
+                            highlight-current
+                            :props="defaultProps">
+                    </el-tree>
+                    <span slot="footer" class="dialog-footer">
+                        <el-button @click="deptVisible = false">取 消</el-button>
+                        <el-button type="primary" :plain="true" @click="deptSelect">确 定</el-button>
+                    </span>
+                </el-dialog>
+                <el-tag v-for="tag in deptSelectData"
+                        :key="tag.deptName"
+                        :type="tag.type">
+                    {{tag.deptName}}
+                </el-tag>
+            </el-form-item>
+
+
+            <el-form-item label="角色">
+                <el-button type="text" @click="roleVisible= true">请选择角色</el-button>
+                <el-dialog :visible.sync="roleVisible" width="30%" append-to-body center>
+                    <el-tree :data="roleData"
+                             show-checkbox
+                             default-expand-all
+                             node-key="id"
+                             ref="tree"
+                             highlight-current
+                             :props="defaultProps1">
+                    </el-tree>
+                    <span slot="footer" class="dialog-footer">
+                        <el-button @click="roleVisible = false">取 消</el-button>
+                        <el-button type="primary" @click="roleSelect">确 定</el-button>
+                    </span>
+                </el-dialog>
+                <el-tag v-for="tag in roleSelectData" :key="tag.roleName" :type="tag.type">
+                    {{tag.roleName}}
+                </el-tag>
+            </el-form-item>
+
+            <el-form-item label="日期">
+                <el-date-picker
+                        v-model="bean.createDate"
+                        type="datetime"
+                        placeholder="选择日期时间">
+                </el-date-picker>
+            </el-form-item>
+        </el-form>
+
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="addDialogVisible = false">取 消</el-button>
+            <el-button :plain="true" type="primary" @click="addPerson">确 定</el-button>
+        </div>
+
+    </el-dialog>
+
+    <!--查看-->
+    <el-table
+            :data="beans.slice((currentPage-1)*pageSize,currentPage*pageSize)"
+            border
+            style="width: 80%">
+
+        <el-table-column fixed prop="id" label="id" width="100"></el-table-column>
+        <el-table-column prop="userName" label="姓名" width="120"></el-table-column>
+        <el-table-column prop="password" label="密码" width="120"></el-table-column>
+        <el-table-column prop="address" label="地址" width="120"></el-table-column>
+        <el-table-column prop="phone" label="电话" width="120"></el-table-column>
+        <el-table-column prop="age" label="年龄" width="120"></el-table-column>
+        <el-table-column prop="sex" label="性别" width="120"></el-table-column>
+        <el-table-column label="日期" align="center" width="200">
+            <template slot-scope="scope">
+                <div>{{formatDate(scope.row.createDate)}}</div>
+            </template>
+        </el-table-column>
+
+        <el-table-column label="部门" align="center" width="200">
+            <template slot-scope="scope">
+                <el-tag size="medium" v-for="item in scope.row.departments" type="primary">
+                    {{item.deptName}}
+                </el-tag>
+            </template>
+        </el-table-column>
+        <el-table-column label="角色" width="235">
+            <template slot-scope="scope">
+                    <el-tag size="medium" v-for="item in scope.row.roleList" type="success">
+                        {{item.roleName}}
+                    </el-tag>
+            </template>
+        </el-table-column>
+
+        <el-table-column fixed="right" label="操作" width="100">
+            <template slot-scope="scope" >
+                <shiro:hasPermission name="update">
+                    <el-button type="text" size="small" @click="openUpdatePerson(scope.row)">编辑</el-button>
+                </shiro:hasPermission>
+
+               <shiro:hasPermission name="delete">
+                    <el-button type="text" size="small" @click="deletePerson(scope.row.id)">删除</el-button>
+               </shiro:hasPermission>
+
+            </template>
+        </el-table-column>
+    </el-table>
+
+    <!--分页-->
+    <el-pagination
+
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="currentPage"
+            :page-sizes="[5, 10, 20, 50]"
+            :page-size="pageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="beans.length"
+            style="text-align:center;margin-top: 10px">
+
+    </el-pagination>
+    <!--编辑 模拟窗-->
+    <el-dialog title="编辑" :visible.sync="editDialogVisible">
+
+        <el-form ref="form" :model="editBean" label-width="60px">
+
+            <el-form-item label="姓名">
+                <el-input v-model.trim="editBean.userName" ></el-input>
+            </el-form-item>
+
+            <el-form-item label="密码">
+                <el-input v-model.trim="editBean.password" ></el-input>
+            </el-form-item>
+
+            <el-form-item label="地址">
+                <el-input v-model.trim="editBean.address" ></el-input>
+            </el-form-item>
+
+            <el-form-item label="电话">
+                <el-input v-model.trim="editBean.phone" ></el-input>
+            </el-form-item>
+
+            <el-form-item label="年龄">
+                <el-input v-model.trim="editBean.age" ></el-input>
+            </el-form-item>
+
+            <el-form-item label="性别">
+                <el-select v-model="editBean.sex" placeholder="请选择">
+                    <el-option label="男" value="男"></el-option>
+                    <el-option label="女" value="女"></el-option>
+                </el-select>
+            </el-form-item>
+
+            <el-form-item label="部门">
+                <el-button type="text" @click="deptVisible = true">请选择部门</el-button>
+                <el-dialog :visible.sync="deptVisible" width="30%" height="50%" append-to-body center>
+                    <el-tree
+                            :data="deptData"
+                            show-checkbox
+                            default-expand-all
+                            node-key="did"
+                            ref="tree1"
+                            highlight-current
+                            :props="defaultProps">
+                    </el-tree>
+                    <span slot="footer" class="dialog-footer">
+                        <el-button @click="deptVisible = false">取 消</el-button>
+                        <el-button type="primary" :plain="true" @click="deptSelect">确 定</el-button>
+                    </span>
+                </el-dialog>
+                <el-tag v-for="tag in deptSelectData"
+                        :key="tag.deptName"
+                        :type="tag.type">
+                    {{tag.deptName}}
+                </el-tag>
+            </el-form-item>
+
+            <el-form-item label="角色">
+                <el-button type="text" @click="roleVisible= true">请选择角色</el-button>
+                <el-dialog :visible.sync="roleVisible" width="30%" append-to-body center>
+                    <el-tree :data="roleData"
+                             show-checkbox
+                             default-expand-all
+                             node-key="id"
+                             ref="tree"
+                             highlight-current
+                             :props="defaultProps1">
+                    </el-tree>
+                    <span slot="footer" class="dialog-footer">
+                        <el-button @click="roleVisible = false">取 消</el-button>
+                        <el-button type="primary" @click="roleSelect">确 定</el-button>
+                    </span>
+                </el-dialog>
+                <el-tag v-for="tag in roleSelectData" :key="tag.roleName" :type="tag.type">
+                    {{tag.roleName}}
+                </el-tag>
+            </el-form-item>
+
+            <el-form-item label="日期">
+                <el-date-picker
+                        v-model="editBean.createDate"
+                        type="datetime"
+                        placeholder="选择日期时间">
+                </el-date-picker>
+            </el-form-item>
+
+        </el-form>
+
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="editDialogVisible = false">取 消</el-button>
+            <el-button :plain="true" type="primary" @click="updatePerson">确 定</el-button>
+        </div>
+    </el-dialog>
+</div>
+</body>
+</html>

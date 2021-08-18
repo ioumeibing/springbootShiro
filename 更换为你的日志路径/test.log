@@ -1,0 +1,33 @@
+17:07:41.192 [restartedMain] INFO  com.how2java.springboot.Application - Starting Application using Java 1.8.0_65 on JX-MFC-01 with PID 13352 (F:\Download\springboot (3)\target\classes started by MFC02 in F:\Download\springboot (3))
+17:07:41.201 [restartedMain] INFO  com.how2java.springboot.Application - No active profile set, falling back to default profiles: default
+17:07:43.348 [restartedMain] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+17:07:43.348 [restartedMain] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+17:07:43.349 [restartedMain] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.48]
+17:07:43.721 [restartedMain] INFO  org.apache.jasper.servlet.TldScanner - At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+17:07:43.725 [restartedMain] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+17:07:44.760 [restartedMain] INFO  springfox.documentation.spring.web.PropertySourcedRequestMappingHandlerMapping - Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2Controller#getDocumentation(String, HttpServletRequest)]
+17:07:45.115 [restartedMain] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+17:07:45.136 [restartedMain] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+17:07:45.174 [restartedMain] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+17:07:45.205 [restartedMain] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+17:07:45.461 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: errorUsingGET_1
+17:07:45.462 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: errorUsingHEAD_1
+17:07:45.462 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: errorUsingPOST_1
+17:07:45.463 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: errorUsingPUT_1
+17:07:45.464 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: errorUsingPATCH_1
+17:07:45.464 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: errorUsingDELETE_1
+17:07:45.465 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: errorUsingOPTIONS_1
+17:07:45.465 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: errorUsingTRACE_1
+17:07:45.490 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: addUsingPOST_1
+17:07:45.491 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: deleteUsingDELETE_1
+17:07:45.497 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: listUsingGET_1
+17:07:45.498 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: updateUsingPUT_1
+17:07:45.519 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: addUsingPOST_2
+17:07:45.520 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: deleteUsingDELETE_2
+17:07:45.524 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: listUsingGET_2
+17:07:45.525 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: updateUsingPUT_2
+17:07:45.526 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: addUsingPOST_3
+17:07:45.527 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: deleteUsingDELETE_3
+17:07:45.531 [restartedMain] INFO  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator - Generating unique operation named: updateUsingPUT_3
+17:07:45.550 [restartedMain] INFO  com.how2java.springboot.Application - Started Application in 6.147 seconds (JVM running for 8.942)
+17:07:51.676 [http-nio-8080-exec-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'

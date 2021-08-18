@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.springboot.mapper.PermissionMapper">
+    <!--parameterType属性，用于对应的mapper接口方法接受的参数类型-->
+    <select id="getAllPermission" resultType="Permission">
+        select * from Permission
+    </select>
+
+    <select id="getById" parameterType="_int" resultType="Permission">
+        select * from Permission where pid=#{pid}
+    </select>
+
+    <insert id="add" parameterType="Permission" >
+        insert into Permission (permissionName,resourceType,url,lastMenu,parentId) values
+        (#{permissionName},#{resourceType},#{url},#{lastMenu},#{parentId})
+    </insert>
+
+    <delete id="delete" parameterType="_int">
+
+        delete from Permission where pid=#{pid}
+
+    </delete>
+
+    <update id="update" parameterType="Permission" >
+        update Permission set permissionName=#{permissionName},resourceType=#{resourceType},url=#{url},lastMenu=#{lastMenu},parentId=#{parentId}
+        where pid=#{pid}
+    </update>
+
+</mapper>

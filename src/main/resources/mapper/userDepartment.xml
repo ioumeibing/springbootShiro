@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.springboot.mapper.userDepartmentMapper">
+
+    <update id="updateUserDepartment" parameterType="userDepartment" >
+        update user_department set uid=#{uid},did=#{did} where id=#{id}
+    </update>
+
+    <select id="getUdByUid" parameterType="_int" resultType="userDepartment">
+        select ud.* from  user_department ud left join Users u on ud.uid=u.uid where u.uid=#{uid}
+    </select>
+
+</mapper>

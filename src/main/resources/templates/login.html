@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/HeaderConfig/configHead::html('登录界面')"></head>
+
+
+<body>
+<div id="app" style="margin: 10px">
+    姓名：<el-input v-model="person.userName" placeholder="请输入姓名" type="text" style="width: 200px"></el-input>
+    密码：<el-input v-model="person.password" placeholder="请输入密码" type="password" style="width: 200px"></el-input>
+    <el-button style="margin-left: 20px" @click="login">登录</el-button>
+</div>
+
+<script>
+    var data4Vue ={
+        uri:'foreLogin',
+        person:{userName:'',password:''}
+    }
+    var vue = new Vue({
+        el:'#app',
+        data:data4Vue,
+
+        methods:{
+            login:function (){
+                var url = this.uri;
+                axios.post(url,this.person).then(function (response){
+                    console.log(response.data);
+                    if (response.data.code===200){
+                        location.href="main"
+                    }
+                    if (response.data.msg==='用户账号或密码不正确'){
+                        alert("用户账号或密码不正确");
+                    }
+                })
+            }
+        }
+    })
+</script>
+
+</body>
+</html>

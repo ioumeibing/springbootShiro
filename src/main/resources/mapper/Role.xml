@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.springboot.mapper.RoleMapper">
+    <!--parameterType属性，用于对应的mapper接口方法接受的参数类型-->
+    <select id="getAllRole" resultType="Role">
+        select rid,roleName,remark from Roles
+    </select>
+
+
+    <select id="getById" parameterType="_int" resultType="Role">
+        select rid,roleName,remark from Roles where rid=#{rid}
+    </select>
+
+    <insert id="add" parameterType="Role" >
+        insert into Roles (roleName,remark) values
+            (#{roleName},#{remark})
+    </insert>
+
+    <insert id="addRolePermiss" parameterType="_int">
+
+        insert into permission_role (pid,rid) values(#{pid},#{rid})
+
+    </insert>
+
+    <delete id="delete" parameterType="_int">
+
+        delete from Roles where rid=#{rid}
+
+    </delete>
+
+    <update id="update" parameterType="Role" >
+        update Roles set roleName=#{roleName},remark=#{remark}
+        where rid=#{rid}
+    </update>
+
+    <select id="getRoleNameByUid" parameterType="_int" resultType="Role">
+
+        select distinct roleName, r.*   from user_role ur
+                            left join Users u on ur.uid=u.uid
+                            left join Roles r on ur.rid=r.rid
+                            where u.uid=#{uid}
+
+    </select>
+
+</mapper>

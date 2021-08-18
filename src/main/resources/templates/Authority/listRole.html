@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head th:include="/HeaderConfig/configHead::html('角色界面')"></head>
+<body>
+<script>
+    $(function (){
+        var data4Vue={
+            uri:'roles',
+            beans:[],
+            bean:{id:0,roleName:'',remark:'',permissions:[]},
+            editBean:{id:0,roleName:'',remark:''},
+
+            editDialogVisible:false,
+            addDialogVisible:false,
+            currentPage:1,
+            pageSize:5,
+
+            permissData:[],
+            defaultProps: {
+                children: 'children',
+                label: 'permissionName'
+            },
+            permissVisible:false,
+            permissSelectData:[]
+        };
+
+        var vue = new Vue({
+            el:'#app',
+            data: data4Vue,
+            mounted:function (){
+                this.list();
+                this.listPermission();
+            },
+
+            methods: {
+                list: function () {
+                    var url = this.uri;
+                    axios.get(url).then(function (response) {
+                        vue.beans = response.data.data;
+                    });
+                },
+                listPermission:function (){
+                    var url ='permissions'
+                    var _this=this;
+                    axios.get(url).then(function (response) {
+                        vue.permissData =response.data.data;
+                        _this.getListData();
+                        /*console.log('data:'+response.data.data);*/
+                    });
+                },
+                getListData() {
+                    let dataArray = [];
+                    vue.permissData.forEach(function (data) {
+                        let parentId = data.parentId;
+                        if (parentId == 0) {
+                            let objTemp = {
+                                id: data.id,
+                                permissionName: data.permissionName,
+                                resourceType:data.resourceType,
+                                url:data.url,
+                                lastMenu:data.lastMenu,
+                                parentId: parentId,
+                            }
+                            dataArray.push(objTemp);
+                            console.log("dataArray"+dataArray);
+                        }
+                    })
+                    this.data2treeDG(vue.permissData, dataArray)
+                },
+                data2treeDG(datas, dataArray) {
+                    for (let j = 0; j < dataArray.length; j++) {
+                        let dataArrayIndex = dataArray[j];
+                        let childrenArray = [];
+                        let Id = dataArrayIndex.id;
+                        /*console.log('Id:'+Id);*/
+                        for (let i = 0; i < datas.length; i++) {
+                            let data = datas[i];
+                            let parentId = data.parentId;
+                            if (parentId == Id) {//判断是否为儿子节点
+                                let objTemp = {
+                                    id: data.id,
+                                    permissionName: data.permissionName,
+                                    resourceType:data.resourceType,
+                                    url:data.url,
+                                    lastMenu:data.lastMenu,
+                                    parentId: parentId,
+                                }
+                                childrenArray.push(objTemp);
+
+                            }
+                        }
+                        dataArrayIndex.children = childrenArray;
+                        if (childrenArray.length > 0) {//有儿子节点则递归
+                            this.data2treeDG(datas, childrenArray)
+                        }
+                    }
+                    vue.permissData = dataArray;
+
+                    return dataArray;
+                },
+
+                deletePerson: function (id) {
+                    var url =  this.uri+'/'+ id;
+                    this.$confirm('此操作将永久删除该用, 是否继续?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });
+                        axios.delete(url).then(function (response) {
+                            vue.list();
+                        });
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '已取消删除'
+                        });
+                    });
+
+                },
+
+                addPerson: function () {
+                    var url = this.uri;
+                    this.bean.permissions = this.permissSelectData;
+                    var _this =this;
+                    axios.post(url, this.bean).then(function (response) {
+                        if (response.data.data===1) {
+                            _this.addDialogVisible=false;
+                            _this.$message({
+                                message: '添加成功',
+                                type: 'success'
+                            });
+                        }
+                        vue.list();
+                        vue.bean = {
+                            id: 0, roleName: '', remark: '',permissions: ''};
+                    });
+                },
+                openUpdatePerson: function (person) {
+                    this.editDialogVisible = true;
+                    vue.editBean = {
+                        id: person.id,
+                        roleName: person.roleName,
+                        remark: person.remark
+                    };
+                    console.log(vue.editBean);
+                },
+
+                updatePerson: function () {
+                    var url = this.uri+'/' + this.editBean.id;
+                    var _this=this;
+                    axios.put(url, this.editBean).then(function (response) {
+                        if (response.data.data===1){
+                            _this.$message({
+                                message: '修改成功',
+                                type: 'success'
+                            });
+                            _this.editDialogVisible = false;
+                        }
+                        vue.list();
+                    });
+                },
+
+                permissSelect:function (){
+                    vue.permissSelectData=this.$refs.tree.getCheckedNodes();
+                    /*console.log('选择的数据：'+vue.permissSelectData)*/
+                    this.permissVisible=false;
+                },
+                handleClick(row) {
+                    console.log(row);
+                },
+                handleSizeChange(size) {
+                    this.pageSize = size;
+                    console.log(this.pageSize);
+                },
+                handleCurrentChange(currentPage) {
+                    this.currentPage = currentPage;
+                    console.log(this.currentPage);
+                },
+            }
+        })
+    })
+</script>
+
+<div id="app" style="width: 100%; margin: 10px">
+
+    <!--增加 模拟窗-->
+    <el-button type="primary" @click="addDialogVisible=true">增加</el-button>
+    <el-dialog title="增加" :visible.sync="addDialogVisible">
+
+        <el-form ref="form" :model="bean" label-width="70px">
+            <el-form-item label="用户名称">
+                <el-input v-model.trim="bean.roleName" ></el-input>
+            </el-form-item>
+            <el-form-item label="描述">
+                <el-input v-model.trim="bean.remark" ></el-input>
+            </el-form-item>
+            <el-form-item label="权限">
+                <el-button type="text" @click="permissVisible = true">请选择权限</el-button>
+                <el-dialog :visible.sync="permissVisible" width="30%" height="50%" append-to-body center>
+                    <el-tree
+                            :data="permissData"
+                            show-checkbox
+                            default-expand-all
+                            node-key="id"
+                            ref="tree"
+                            highlight-current
+                            :props="defaultProps">
+                    </el-tree>
+                    <span slot="footer" class="dialog-footer">
+                        <el-button @click="permissVisible = false">取 消</el-button>
+                        <el-button type="primary" :plain="true" @click="permissSelect">确 定</el-button>
+                    </span>
+                </el-dialog>
+
+                <el-tag v-for="tag in permissSelectData"
+                        :key="tag.permissionName"
+                        :type="tag.type">
+                    {{tag.permissionName}}
+                </el-tag>
+            </el-form-item>
+
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="addDialogVisible = false">取 消</el-button>
+            <el-button :plain="true" type="primary" @click="addPerson">确 定</el-button>
+        </div>
+    </el-dialog>
+
+    <!--查看-->
+    <el-table
+            :data="beans.slice((currentPage-1)*pageSize,currentPage*pageSize)"
+            border
+            style="width: 80%">
+
+        <el-table-column fixed prop="id" label="id" width="100"></el-table-column>
+        <el-table-column prop="roleName" label="角色名称" width="120"></el-table-column>
+        <el-table-column prop="remark" label="描述" width="120"></el-table-column>
+
+        <el-table-column fixed="right" label="操作" width="100">
+            <template slot-scope="scope">
+                <el-button type="text" size="small" @click="openUpdatePerson(scope.row)">编辑</el-button>
+                <el-button type="text" size="small" @click="deletePerson(scope.row.id)">删除</el-button>
+            </template>
+        </el-table-column>
+
+    </el-table>
+    <!--分页-->
+    <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="currentPage"
+            :page-sizes="[5, 10, 20, 50]"
+            :page-size="pageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="beans.length">
+    </el-pagination>
+
+    <!--编辑 模拟窗-->
+    <el-dialog title="编辑" :visible.sync="editDialogVisible">
+
+        <el-form ref="form" :model="editBean" label-width="70px">
+
+            <el-form-item label="角色名称">
+                <el-input v-model.trim="editBean.roleName" ></el-input>
+            </el-form-item>
+
+            <el-form-item label="描述">
+                <el-input v-model.trim="editBean.remark" ></el-input>
+            </el-form-item>
+
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="editDialogVisible = false">取 消</el-button>
+            <el-button :plain="true" type="primary" @click="updatePerson">确 定</el-button>
+        </div>
+
+    </el-dialog>
+</div>
+
+</body>
+</html>

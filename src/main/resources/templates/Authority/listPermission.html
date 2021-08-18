@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head th:include="/HeaderConfig/configHead::html('权限界面')"></head>
+
+<body>
+<script>
+    $(function (){
+        var data4Vue={
+            uri:'permissions',
+            beans:[],
+            bean:{id:0,permissionName:'',resourceType:'',url:'',lastMenu:''},
+            editBean:{id:0,permissionName:'',resourceType:'',url:'',lastMenu:''},
+
+            editDialogVisible:false,
+            addDialogVisible:false,
+            currentPage:1,
+            pageSize:5,
+        };
+        var vue = new Vue({
+            el:'#app',
+            data: data4Vue,
+            mounted:function (){
+                this.list();
+            },
+            methods: {
+                list: function () {
+                    var url = this.uri;
+                    axios.get(url).then(function (response) {
+                        vue.beans = response.data.data;
+                    });
+                },
+                deletePerson: function (id) {
+
+                    var url =  'deletePermissions/'+ id;
+                    this.$confirm('此操作将永久删除该用, 是否继续?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });
+                        axios.delete(url).then(function (response) {
+                            vue.list();
+                        });
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '已取消删除'
+                        });
+                    });
+
+                },
+
+                addPerson: function () {
+                    var url = 'addPermissions';
+                    var _this =this;
+                    axios.post(url, this.bean).then(function (response) {
+                        if (response.data.data===1) {
+                            _this.addDialogVisible=false;
+                            _this.$message({
+                                message: '添加成功',
+                                type: 'success'
+                            });
+                        }
+                        vue.list();
+                        vue.bean = {
+                            id: 0, permissionName: '', resourceType: '', url: '',lastMenu:''
+                        };
+                    });
+
+
+                },
+                openUpdatePerson: function (person) {
+                    this.editDialogVisible = true;
+                    vue.editBean = {
+                        id: person.id,
+                        permissionName: person.permissionName,
+                        resourceType: person.resourceType,
+                        url:person.url,
+                        lastMenu:person.lastMenu
+                    };
+                },
+
+                updatePerson: function () {
+                    var url = 'updatePermissions/' + this.editBean.id;
+                    var _this=this;
+                    axios.put(url, this.editBean).then(function (response) {
+                        if (response.data.data===1){
+                            _this.$message({
+                                message: '修改成功',
+                                type: 'success'
+                            });
+                            _this.editDialogVisible = false;
+                        }
+                        vue.list();
+                    });
+                },
+                handleClick(row) {
+                    console.log(row);
+                },
+                handleSizeChange(size) {
+                    this.pageSize = size;
+                    console.log(this.pageSize);
+                },
+                handleCurrentChange(currentPage) {
+                    this.currentPage = currentPage;
+                    console.log(this.currentPage);
+                },
+
+            }
+        })
+    })
+</script>
+
+<div id="app" style="width: 100%; margin: 10px">
+
+    <!--增加 模拟窗-->
+    <el-button type="primary" @click="addDialogVisible=true">增加</el-button>
+    <el-dialog title="增加" :visible.sync="addDialogVisible">
+
+        <el-form ref="form" :model="bean" label-width="90px">
+            <el-form-item label="权限名称">
+                <el-input v-model.trim="bean.permissionName" ></el-input>
+            </el-form-item>
+            <el-form-item label="资源类型">
+                <el-input v-model.trim="bean.resourceType" ></el-input>
+            </el-form-item>
+            <el-form-item label="链接">
+                <el-input v-model.trim="bean.url" ></el-input>
+            </el-form-item>
+            <el-form-item label="上一级菜单">
+                <el-input v-model.trim="bean.lastMenu" ></el-input>
+            </el-form-item>
+        </el-form>
+
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="addDialogVisible = false">取 消</el-button>
+            <el-button :plain="true" type="primary" @click="addPerson">确 定</el-button>
+        </div>
+    </el-dialog>
+
+    <!--查看-->
+    <el-table
+            :data="beans.slice((currentPage-1)*pageSize,currentPage*pageSize)"
+            border
+            style="width: 80%">
+
+        <el-table-column fixed prop="id" label="id" width="100"></el-table-column>
+        <el-table-column prop="permissionName" label="权限名称" width="120"></el-table-column>
+        <el-table-column prop="resourceType" label="资源类型" width="120"></el-table-column>
+        <el-table-column prop="url" label="地址" width="120"></el-table-column>
+        <el-table-column prop="lastMenu" label="上一级菜单" width="120"></el-table-column>
+
+
+        <el-table-column fixed="right" label="操作" width="100">
+            <template slot-scope="scope">
+                <el-button type="text" size="small" @click="openUpdatePerson(scope.row)">编辑</el-button>
+                <el-button type="text" size="small" @click="deletePerson(scope.row.id)">删除</el-button>
+            </template>
+        </el-table-column>
+
+    </el-table>
+    <!--分页-->
+    <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="currentPage"
+            :page-sizes="[5, 10, 20, 50]"
+            :page-size="pageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="beans.length">
+    </el-pagination>
+
+    <!--编辑 模拟窗-->
+    <el-dialog title="编辑" :visible.sync="editDialogVisible">
+
+        <el-form ref="form" :model="editBean" label-width="90px">
+            <el-form-item label="权限名称">
+                <el-input v-model.trim="editBean.permissionName" ></el-input>
+            </el-form-item>
+            <el-form-item label="资源类型">
+                <el-input v-model.trim="editBean.resourceType" ></el-input>
+            </el-form-item>
+            <el-form-item label="URL">
+                <el-input v-model.trim="editBean.url" ></el-input>
+            </el-form-item>
+            <el-form-item label="上一级菜单">
+                <el-input v-model.trim="editBean.lastMenu" ></el-input>
+            </el-form-item>
+
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="editDialogVisible = false">取 消</el-button>
+            <el-button :plain="true" type="primary" @click="updatePerson">确 定</el-button>
+        </div>
+
+    </el-dialog>
+</div>
+</body>
+</html>
