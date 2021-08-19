@@ -84,7 +84,6 @@ public class UploadController {
     @RequestMapping(value = "/downLoading")
     public String downLoad(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 
-
         String fileNameSuffix =request.getParameter("name");
         String path ="\\\\192.168.1.236\\softWare\\1.常规软件\\1.输入法\\";
         /*String fileNameSuffix ="sogou_wubi_31a";*/
@@ -94,9 +93,13 @@ public class UploadController {
         if (!file.exists()){
                 return "error";
         }
+
        InputStream inputStream = null;
+
        BufferedInputStream bufferedInputStream = null;
+
        BufferedOutputStream bufferedOutputStream = null;
+
        response.setHeader("Content-Disposition", "fileName=" + URLEncoder.encode(fileName, "UTF-8"));
 
        try
@@ -106,6 +109,7 @@ public class UploadController {
            bufferedOutputStream= new BufferedOutputStream(response.getOutputStream());
            FileCopyUtils.copy(bufferedInputStream, bufferedOutputStream);
        }
+
        catch (Exception e){
            System.out.println(e.getMessage());
            response.sendError(response.SC_NOT_FOUND, e.getMessage());
@@ -114,13 +118,21 @@ public class UploadController {
 
        finally {
            if (null!=inputStream){
+
                inputStream.close();
+
            }
+
            if (null!=bufferedInputStream){
+
                bufferedInputStream.close();
+
            }
+
            if (null!=bufferedOutputStream){
+
                bufferedOutputStream.close();
+
            }
        }
         return "success";
